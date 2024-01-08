@@ -1,5 +1,7 @@
 #include "ScalarConverter.hpp"
 #include <cmath>
+#include <stdlib.h>
+#include <limits.h>
 
 static void printIfSpecial(const std::string str) {
 	if (str == "-inff" || str == "-inf" || str == "+inf" || str == "+inff") {
@@ -26,8 +28,8 @@ static void printImpossible() {
 
 static int countOccurrences(char target, const std::string &str) {
     int count = 0;
-    for (char ch : str)
-        if (ch == target)
+    for (std::size_t i = 0; i < str.size(); i++)
+        if (str[i] == target)
             count++;
     return count;
 }
@@ -75,7 +77,7 @@ static void printChar(double i) {
 }
 
 static void printInt(double i) {
-	if (i > INT32_MAX || i < INT32_MIN)
+	if (i > INT_MAX || i < INT_MIN)
 		std::cout << "int: impossible" << std::endl;
 	else
 		std::cout << "int: " << static_cast<int> (i) << std::endl;
