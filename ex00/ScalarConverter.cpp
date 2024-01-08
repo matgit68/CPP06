@@ -2,37 +2,26 @@
 #include <cmath>
 
 static void printIfSpecial(const std::string str) {
-	if (str == "-inff" || str == "-inf") {
+	if (str == "-inff" || str == "-inf" || str == "+inf" || str == "+inff") {
 		std::cout << "char: impossible" << std::endl;
 		std::cout << "int: impossible" << std::endl;
-		std::cout << "float: -inff" << std::endl;
-		std::cout << "double: -inf" << std::endl;
-		exit(0);
-	}
-	if (str == "+inf" || str == "+inff") {
-		std::cout << "char: impossible" << std::endl;
-		std::cout << "int: impossible" << std::endl;
-		std::cout << "float: inff" << std::endl;
-		std::cout << "double: inf" << std::endl;
-		exit(0);
-	}
-	if (str == "nan" || str == "nanf") {
-		std::cout << "char: impossible" << std::endl;
-		std::cout << "int: impossible" << std::endl;
-		std::cout << "float: nanf" << std::endl;
-		std::cout << "double: nan" << std::endl;
+		if (str == "-inff" || str == "+inff") {
+			std::cout << "float: " << str << std::endl;
+			std::cout << "double: " << str[0] << "inf" << std::endl;
+		}
+		else if (str == "-inf" || str == "+inf") {
+			std::cout << "float: " << str << "f" << std::endl;
+			std::cout << "double: " << str << std::endl;
+		}
 		exit(0);
 	}
 }
 
-static void printIfChar(const std::string lit) {
-	if (lit.size() != 1)
-		return ;
-	std::cout << "char: '" << lit[0] << "'" << std::endl;
-	std::cout << "int: " << static_cast<int> (lit[0]) << std::endl;
-	std::cout << "float: " << static_cast<float> (lit[0]) << std::endl;
-	std::cout << "double: " << static_cast<double> (lit[0]) << std::endl;
-	exit(0);
+static void printImpossible() {
+	std::cout << "char: impossible" << std::endl;
+	std::cout << "int: impossible" << std::endl;
+	std::cout << "float: nanf" << std::endl;
+	std::cout << "double: nan" << std::endl;
 }
 
 static int countOccurrences(char target, const std::string &str) {
@@ -43,96 +32,81 @@ static int countOccurrences(char target, const std::string &str) {
     return count;
 }
 
-static bool isInt(const std::string lit) {
-	return (lit.find_first_not_of("0123456789") == std::string::npos);
-}
-
-static bool isFloat(const std::string lit) {
-	if (lit.find_first_not_of("0123456789.f") != std::string::npos)
+static bool checkMinus(std::string lit) {
+	if (countOccurrences('-', lit) > 1)
 		return false;
-	if (countOccurrences('.', lit) > 1 || countOccurrences('f', lit) > 1)
-		return false;
-	if (lit.find('f') != lit.size() - 1)
+	if (countOccurrences('-', lit) == 1 && lit.find('-') != 0)
 		return false;
 	return true;
 }
 
-static bool isDouble(const std::string lit) {
-	if (lit.find_first_not_of("0123456789.") != std::string::npos)
+static bool checkFloat(std::string lit) {
+	if (countOccurrences('f', lit) > 1)
 		return false;
-	if (countOccurrences('.', lit) > 1)
+	if (countOccurrences('f', lit) == 1 && lit.find('f') != lit.size() - 1)
 		return false;
 	return true;
 }
 
-static bool isDecimal(const std::string lit) {
-	return (lit.find_first_not_of("0123456789.") == std::string::npos);
+static bool isChar(const std::string lit) {
+	if (lit.size() != 1)
+		return false;
+	if (std::isdigit(lit[0]))
+		return false;
+	return true;
 }
 
-static void printIfInt(const std::string lit) {
-	if (lit.find('.') || lit.find('f'))
-		return ;
-	const char* str = lit.c_str();
-	int i = std::atoi(str);
-	std::cout << "char: ";
-	if ((i > 0 && i < 32) || i == 127)
-		std::cout << "Non displayable";
+static bool isOther(const std::string lit) {
+	if (lit.find_first_not_of("-0123456789.f") != std::string::npos)
+		return false;
+	if (!checkMinus(lit) || !checkFloat(lit) || countOccurrences('.', lit) > 1)
+		return false;
+	return true;
+}
+
+static void printChar(double i) {
+	if ((i >= 0 && i < 32) || i == 127)
+		std::cout << "char: Non displayable";
 	else if (i >= 32 && i < 127)
-		std::cout << "'" << static_cast<char> (i) << "'";
+		std::cout << "char: '" << static_cast<char> (i) << "'";
 	else
-		std::cout << "impossible";
+		std::cout << "char: impossible";
 	std::cout << std::endl;
 }
 
-static void printIfFu(const std::string lit) {
-	int point = 0;
-	for (int i = 0; i < lit.size(); i++) {
-		if (lit[i] == '.')
-			point++;
-		if (point > 1)
-			return ;
-	}
-}
-
-static void printIfFloat(const std::string lit) {
-	float f = std::atof(lit.c_str());
-	std::cout << "char: " << static_cast<char>(f) << std::endl;
-	std::cout << "int: " << static_cast<int>(f) << std::endl;
-    float partieEntiere;
-    float mantisse = std::modf(f, &partieEntiere);
-	std::cout << "float: " << partieEntiere << mantisse << 'f' << std::endl;
-	std::cout << "double: " << static_cast<double>(f) << std::endl;
-}
-
-static void printIfDouble(const std::string lit) {
-}
-
-static void impossibleSoPrint() {
-		std::cout << "char: impossible" << std::endl;
+static void printInt(double i) {
+	if (i > INT32_MAX || i < INT32_MIN)
 		std::cout << "int: impossible" << std::endl;
-		std::cout << "float: impossible" << std::endl;
-		std::cout << "double: impossible" << std::endl;
+	else
+		std::cout << "int: " << static_cast<int> (i) << std::endl;
 }
 
-static std::string getType(const std::string lit) {
-	if (lit.size() == 1)
-		return "char";
-	if (isInt(lit))
-		return "int";
-	if (isFloat(lit))
-		return "float";
-	if (isDouble(lit))
-		return "double";
-	return "error";	
+static void printFromChar(const std::string lit) {
+	std::cout << "char: '" << lit[0] << "'" << std::endl;
+	std::cout << "int: " << static_cast<int> (lit[0]) << std::endl;
+	std::cout << "float: " << static_cast<float> (lit[0]) << ".0f" << std::endl;
+	std::cout << "double: " << static_cast<double> (lit[0]) << ".0" << std::endl;
+}
+
+static void printFromOther(const std::string lit) {
+	double i = std::atof(lit.c_str());
+	printChar(i);
+	printInt(i);
+	double e;
+	double virgule = modf(i, &e);
+	std::string precision = "";
+	if (!virgule)
+		precision = ".0";
+	std::cout << "float: " << static_cast<float> (i) << precision << "f" << std::endl;
+	std::cout << "double: " << i << precision << std::endl;
 }
 
 void ScalarConverter::convert(const std::string lit) {
-	std::string type = getType(lit);
-	std::cout << type << std::endl;
-	// printIfSpecial(lit);
-	// printIfFloat(lit);
-	// printIfChar(lit);
-	// printIfInt(lit);
-	// printIfDouble(lit);
-	// printIfFu(lit);
+	printIfSpecial(lit);
+	if (isChar(lit))
+		printFromChar(lit);
+	else if (isOther(lit))
+		printFromOther(lit);
+	else
+		printImpossible();
 }
